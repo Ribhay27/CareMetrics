@@ -1,0 +1,74 @@
+{
+  "best_params": {
+    "learning_rate": 0.05,
+    "max_depth": 3,
+    "n_estimators": 100,
+    "subsample": 1.0
+  },
+  "cv_best_score_f1_macro": 0.9926599302479783,
+  "auc_roc_macro": 0.9999752156746055,
+  "classes": [
+    "High",
+    "Low",
+    "Medium"
+  ],
+  "feature_columns": [
+    "composite_quality_score",
+    "readmission_risk_score",
+    "patient_experience_score",
+    "community_health_burden_score",
+    "urban_rural_encoded",
+    "hospital_type_encoded",
+    "ownership_encoded",
+    "state_avg_quality_score",
+    "state_readmission_percentile",
+    "diabetes_prevalence",
+    "obesity_prevalence",
+    "smoking_prevalence",
+    "poor_mental_health_days",
+    "no_health_insurance_rate",
+    "physical_inactivity_rate",
+    "overall_rating",
+    "ed_throughput_score",
+    "door_to_ct_score",
+    "sepsis_care_score",
+    "readm_heart_failure",
+    "readm_pneumonia",
+    "readm_copd",
+    "readm_heart_attack",
+    "readm_stroke",
+    "readm_hip_knee"
+  ],
+  "f1_per_class": {
+    "High": 0.9972067039106145,
+    "Low": 0.9992360580595875,
+    "Medium": 0.9798657718120806
+  },
+  "precision_per_class": {
+    "High": 1.0,
+    "Low": 0.9984732824427481,
+    "Medium": 0.9733333333333334
+  },
+  "recall_per_class": {
+    "High": 0.9944289693593314,
+    "Low": 1.0,
+    "Medium": 0.9864864864864865
+  },
+  "confusion_matrix": [
+    [
+      357,
+      0,
+      2
+    ],
+    [
+      0,
+      654,
+      0
+    ],
+    [
+      0,
+      1,
+      73
+    ]
+  ]
+}
