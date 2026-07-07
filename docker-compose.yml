@@ -1,0 +1,145 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: hospital_postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hospital_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hospital_password}
+      POSTGRES_DB: ${POSTGRES_DB:-hospital_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - hospital_postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/00_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hospital_user} -d ${POSTGRES_DB:-hospital_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+    networks:
+      - hospital_network
+
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+    container_name: hospital_airflow_webserver
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY}
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW__WEBSERVER__SECRET_KEY: hospital-local-secret-key
+      PROJECT_ROOT: /opt/airflow/project
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+    user: "${AIRFLOW_UID:-50000}:0"
+    command: >
+      bash -c "airflow db migrate &&
+               airflow users create --username admin --password admin --firstname Hospital --lastname Admin --role Admin --email admin@example.com || true &&
+               airflow webserver"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./data:/opt/airflow/project/data
+      - ./ml:/opt/airflow/project/ml
+      - ./dbt_project:/opt/airflow/project/dbt_project
+      - ./download_data.py:/opt/airflow/project/download_data.py
+      - ./load_raw.py:/opt/airflow/project/load_raw.py
+      - ./requirements.txt:/opt/airflow/project/requirements.txt
+    networks:
+      - hospital_network
+
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+    container_name: hospital_airflow_scheduler
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-webserver:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY}
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PROJECT_ROOT: /opt/airflow/project
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+    user: "${AIRFLOW_UID:-50000}:0"
+    command: bash -c "airflow db migrate && airflow scheduler"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./data:/opt/airflow/project/data
+      - ./ml:/opt/airflow/project/ml
+      - ./dbt_project:/opt/airflow/project/dbt_project
+      - ./download_data.py:/opt/airflow/project/download_data.py
+      - ./load_raw.py:/opt/airflow/project/load_raw.py
+      - ./requirements.txt:/opt/airflow/project/requirements.txt
+    networks:
+      - hospital_network
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: hospital_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./ml:/app/ml
+    networks:
+      - hospital_network
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    container_name: hospital_dashboard
+    restart: unless-stopped
+    depends_on:
+      - api
+    env_file:
+      - .env
+    environment:
+      API_BASE_URL: http://api:8000
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+    networks:
+      - hospital_network
+
+volumes:
+  hospital_postgres_data:
+
+networks:
+  hospital_network:
+    driver: bridge
