@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.env
+.env.local
+
+# macOS
+.DS_Store
+
+# Data artifacts
+data/raw/
+data/interim/
+data/processed/*
+!data/processed/.gitkeep
+
+# ML artifacts
+ml/models/*
+!ml/models/.gitkeep
+
+# dbt generated files
+dbt_project/target/
+dbt_project/logs/
+dbt_project/dbt_packages/
+
+# Streamlit/cache/secrets
+.streamlit/secrets.toml
+.cache/
+
+# Misc
+*.log
+*.bak
+bin/
