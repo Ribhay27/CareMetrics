@@ -1,0 +1,37 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: hospitals_general
+      - name: hospitals_readmissions
+      - name: hospitals_patient_experience
+      - name: hospitals_timely_care
+      - name: hospitals_general_2022
+      - name: hospitals_readmissions_2022
+      - name: hospitals_general_2021
+      - name: hospitals_readmissions_2021
+      - name: cdc_places_county
+
+models:
+  - name: stg_hospitals
+    columns:
+      - name: provider_id
+        tests: [not_null, unique]
+  - name: stg_readmissions
+    columns:
+      - name: provider_id
+        tests: [not_null, unique]
+  - name: stg_patient_experience
+    columns:
+      - name: provider_id
+        tests: [not_null, unique]
+  - name: stg_timely_care
+    columns:
+      - name: provider_id
+        tests: [not_null, unique]
+  - name: stg_community_health
+    columns:
+      - name: state
+        tests: [not_null]

@@ -1,0 +1,9 @@
+component,weight,description
+patient_experience,0.35,HCAHPS patient experience composite
+timely_care,0.30,Timely and effective care process metrics
+readmission_performance,0.35,Inverted normalized readmission risk
+community_diabetes,0.30,CDC diabetes prevalence burden
+community_obesity,0.25,CDC obesity prevalence burden
+community_smoking,0.20,CDC smoking prevalence burden
+community_poor_health,0.15,CDC poor mental health burden
+community_no_insurance,0.10,CDC uninsured burden

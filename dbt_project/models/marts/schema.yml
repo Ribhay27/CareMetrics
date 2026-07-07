@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: mart_hospital_performance
+    columns:
+      - name: provider_id
+        tests: [not_null, unique]
+  - name: mart_readmission_risk
+    columns:
+      - name: provider_id
+        tests: [not_null, unique]
+  - name: mart_regional_summary
+    columns:
+      - name: state
+        tests: [not_null, unique]
