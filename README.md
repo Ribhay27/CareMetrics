@@ -1,4 +1,4 @@
-# CareMetrics (WORK IN PROGRESS)
+# CareMetrics 
 
 # Clinical Performance & Readmission Risk Analytics Pipeline
 
