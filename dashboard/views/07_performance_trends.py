@@ -61,14 +61,8 @@ def ensure_columns(df):
 
 
 def run():
-    st.title("7. Performance Trends")
-    st.caption("Current hospital performance snapshot and ranking analysis.")
-
-    st.warning(
-        "True year-over-year trend data is not enabled yet. "
-        "This page currently shows current hospital performance rankings and distributions."
-    )
-
+    st.title("Performance Metrics")
+    st.caption("Compare hospital quality rankings, readmission-risk patterns, and provider-level performance metrics.")
     try:
         df = load_performance_data()
     except Exception as e:
