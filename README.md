@@ -156,7 +156,9 @@ order by schemaname, tablename;
 2. In Streamlit Community Cloud, create a new app pointing to `dashboard/app.py`.
 3. Add secrets/environment variables equivalent to `.env`: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_HOST`, `POSTGRES_PORT`, `ANTHROPIC_API_KEY`, and `API_BASE_URL`.
 4. Use a hosted PostgreSQL database. Streamlit Cloud cannot run this local Docker PostgreSQL instance.
-5. Deploy the FastAPI backend separately, then set `API_BASE_URL` to that deployed API URL.
+
+Link: https://caremetrics.streamlit.app
+6. Deploy the FastAPI backend separately, then set `API_BASE_URL` to that deployed API URL.
 
 ## Notes
 
