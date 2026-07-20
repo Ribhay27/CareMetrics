@@ -1,6 +1,7 @@
 import importlib.util
 import os
 from pathlib import Path
+import sys
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -13,6 +14,11 @@ GITHUB_URL = os.getenv("GITHUB_URL", "https://github.com/Ribhay27/CareMetrics")
 LINKEDIN_URL = os.getenv("LINKEDIN_URL", "")
 
 BASE_DIR = Path(__file__).parent
+PROJECT_ROOT = BASE_DIR.parent
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 VIEWS_DIR = BASE_DIR / "views"
 
 st.set_page_config(
