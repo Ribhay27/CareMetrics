@@ -1,165 +1,308 @@
-# Clinical Performance & Readmission Risk Analytics Pipeline
+# CareMetrics — Hospital Quality & Readmission Risk Intelligence Platform
 
-An end-to-end hospital analytics platform using PostgreSQL, Airflow, dbt, XGBoost, LightGBM, SHAP, FastAPI, and Streamlit.
+CareMetrics is an end-to-end healthcare analytics platform that turns public CMS hospital-quality data and CDC community-health data into hospital-level insights, readmission-risk analysis, quality rankings, model explainability, and an interactive Streamlit dashboard.
 
-## What this project includes
+The project was built to understand how a complete data product works from raw data ingestion to database modeling, analytics engineering, machine learning, API serving, and dashboard delivery.
 
-- CMS hospital quality ingestion: Hospital General Information, HRRP readmissions, HCAHPS patient experience, Timely & Effective Care.
-- Historical CMS snapshots for 2021 and 2022 trend views.
-- CDC PLACES county-level community health data.
-- PostgreSQL schemas: `raw`, `staging`, `intermediate`, `marts`.
-- dbt staging, intermediate, and mart models.
-- Airflow weekly pipeline DAG.
-- ML feature engineering, readmission risk classifier, quality score regressor, and SHAP explainability artifacts.
-- FastAPI backend with hospital, regional, trends, prediction, and natural language query endpoints.
-- Streamlit dashboard with 8 analytical views.
+---
 
-## Local quickstart on Mac
+## Live Links
 
-### 1. Create the env file
+- **Live Dashboard:** https://caremetrics.streamlit.app
+- **GitHub Repository:** https://github.com/Ribhay27/CareMetrics
+- **LinkedIn:** https://www.linkedin.com/in/ribhaysingh/
 
-```bash
-cp .env.example .env
-python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+> The public Streamlit dashboard uses an exported SQLite demo snapshot generated from the final dbt marts. The full local version runs with Dockerized PostgreSQL, dbt, ML pipelines, FastAPI, Airflow, and Streamlit.
+
+---
+
+## What This Project Solves
+
+Hospital performance data is public, but it is spread across multiple datasets and is difficult to compare directly.
+
+CareMetrics brings together hospital information, readmission measures, patient experience data, timely-care performance, and CDC community-health indicators into one structured analytics platform.
+
+The project helps answer questions like:
+
+- Which hospitals are performing best overall?
+- Which hospitals have higher readmission risk?
+- How do hospitals compare across states and regions?
+- How do patient experience and timely-care metrics relate to quality?
+- How does community-health burden affect hospital performance?
+- Which factors influence machine-learning model outputs?
+
+Instead of only building a standalone machine-learning model, this project focuses on the full data lifecycle: ingestion, storage, transformation, validation, modeling, explainability, API development, and dashboarding.
+
+---
+
+## Datasets Used
+
+CareMetrics uses public healthcare datasets from CMS and CDC.
+
+### CMS Hospital Data
+
+- Hospital General Information
+- Hospital Readmissions / HRRP measures
+- HCAHPS Patient Experience
+- Timely and Effective Care
+
+### CDC Community Health Data
+
+- CDC PLACES county-level community-health indicators
+
+These datasets are loaded into PostgreSQL, transformed with dbt, and combined into final analytics marts used by the dashboard and modeling workflows.
+
+---
+
+## Technical Architecture
+
+```text
+CMS / CDC public datasets
+        ↓
+Python ingestion scripts
+        ↓
+PostgreSQL raw tables
+        ↓
+dbt staging models
+        ↓
+dbt intermediate models
+        ↓
+dbt analytics marts
+        ↓
+Feature engineering
+        ↓
+XGBoost + LightGBM models
+        ↓
+SHAP explainability
+        ↓
+FastAPI backend
+        ↓
+Streamlit dashboard
 ```
 
-Paste the generated key into `AIRFLOW_FERNET_KEY` in `.env`. Add your real `ANTHROPIC_API_KEY` only if you want the Claude Text-to-SQL page to work.
+---
 
-### 2. Start PostgreSQL first
+## Core Features
 
-```bash
-docker compose up -d postgres
-until docker exec hospital_postgres pg_isready -U hospital_user -d hospital_db; do sleep 2; done
-docker exec -i hospital_postgres psql -U hospital_user -d hospital_db < init.sql
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python verify_setup.py
+### National Overview
+
+Provides an executive-level summary of hospital performance, including:
+
+- Hospital count
+- Average quality score
+- Average readmission-risk score
+- Average patient-experience score
+- Readmission-risk distribution
+- Hospital mix by type
+- State-level performance summaries
+
+### Hospital Search
+
+Allows users to search and compare hospitals by:
+
+- Hospital name
+- City
+- State
+- Hospital type
+- Composite quality score
+- Readmission-risk score
+- Readmission-risk label
+- Quality tier
+
+### Readmission Risk Analysis
+
+Classifies hospitals into readmission-risk groups:
+
+- Low risk
+- Medium risk
+- High risk
+
+This helps identify hospitals that may need closer review around patient readmissions and care outcomes.
+
+### Quality Scorecard
+
+Ranks hospitals using a composite quality score and compares providers across quality tiers.
+
+This helps surface:
+
+- Top-performing hospitals
+- Lower-performing hospitals
+- State and regional quality differences
+- Provider-level performance patterns
+
+### Community Health Analysis
+
+Incorporates CDC community-health indicators to give hospital performance additional regional context.
+
+This helps analyze how community health burden may relate to hospital outcomes and readmission risk.
+
+### Risk Explainability
+
+Uses SHAP analysis to interpret machine-learning model outputs.
+
+Instead of only showing a prediction, the explainability layer helps identify which features influenced risk or quality estimates.
+
+### Performance Metrics
+
+Provides additional hospital-level and regional performance comparisons, including quality distributions, risk patterns, and provider-level summaries.
+
+### Natural Language Query
+
+Includes an optional natural-language query feature for asking plain-English questions against the analytics layer.
+
+This feature is designed as an experimental Text-to-SQL style interface.
+
+---
+
+## Data Engineering
+
+The project uses a layered warehouse structure in PostgreSQL:
+
+```text
+raw
+staging
+intermediate
+marts
 ```
 
-Expected final line: `ALL CHECKS PASSED`.
+### Raw Layer
 
-### 3. Download and load data
+Stores source data loaded from CMS and CDC files.
 
-```bash
-python download_data.py
-python load_raw.py
+Example raw tables:
+
+```text
+raw.hospitals_general
+raw.hospitals_readmissions
+raw.hospitals_patient_experience
+raw.hospitals_timely_care
+raw.cdc_places_county
 ```
 
-The downloader prints a summary table. Every file should be `DOWNLOADED` or `SKIPPED` with more than 1,000 rows.
+### Staging Layer
 
-### 4. Build dbt models
+Standardizes raw tables by cleaning column names, casting data types, and preparing source data for transformation.
 
-```bash
-cd dbt_project
-export DBT_PROFILES_DIR=$PWD
-dbt deps
-dbt seed
-dbt run
-dbt test
-cd ..
+### Intermediate Layer
+
+Combines and prepares hospital-level metrics, scoring logic, and supporting transformations.
+
+### Marts Layer
+
+Final dashboard-ready analytics tables.
+
+Main marts:
+
+```text
+marts.mart_hospital_performance
+marts.mart_readmission_risk
+marts.mart_regional_summary
 ```
 
-Expected dbt result: all models created and tests pass.
+These marts power the Streamlit dashboard, API endpoints, and public demo database snapshot.
 
-### 5. Train models and generate SHAP artifacts
+---
 
-```bash
-python ml/feature_engineering.py
-python ml/train_classifier.py
-python ml/train_regressor.py
-python ml/shap_analysis.py
+## Machine Learning
+
+CareMetrics includes machine-learning workflows for hospital performance analysis.
+
+### Models
+
+- **XGBoost** for readmission-risk classification
+- **LightGBM** for hospital quality-score estimation
+- **SHAP** for model explainability
+
+### ML Workflow
+
+```text
+dbt marts
+   ↓
+feature engineering
+   ↓
+model training
+   ↓
+metrics evaluation
+   ↓
+SHAP explainability
+   ↓
+dashboard/API outputs
 ```
 
-Expected outputs:
+The quality-score regression model achieved approximately **0.84 R²** during experimentation.
 
-- `data/processed/features.parquet`
-- `data/processed/feature_metadata.json`
-- `ml/models/readmission_classifier.pkl`
-- `ml/models/quality_regressor.pkl`
-- `data/processed/classifier_metrics.json`
-- `data/processed/regressor_metrics.json`
-- `data/processed/shap_classifier.parquet`
-- `data/processed/shap_regressor.parquet`
-- `data/processed/shap_classifier_summary.png`
-- `data/processed/shap_regressor_summary.png`
+---
 
-### 6. Start API
+## Backend API
 
-```bash
-uvicorn api.main:app --reload --port 8000
+The project includes a FastAPI backend for serving hospital analytics and model-related outputs.
+
+The API supports functionality such as:
+
+- Health checks
+- Hospital search
+- High-risk hospital filtering
+- Regional summaries
+- Hospital scoring
+- Natural-language query endpoint
+
+Local Swagger docs are available at:
+
+```text
+http://localhost:8000/docs
 ```
 
-Open Swagger docs at `http://localhost:8000/docs`.
+---
 
-Useful endpoint tests:
+## Dashboard
 
-```bash
-curl http://localhost:8000/health
-curl 'http://localhost:8000/hospitals?state=AZ&limit=5'
-curl 'http://localhost:8000/hospitals/risk?state=AZ&risk_level=High&limit=5'
-curl http://localhost:8000/regional/summary
-curl http://localhost:8000/trends/030001
-curl -X POST http://localhost:8000/hospitals/score \
-  -H 'Content-Type: application/json' \
-  -d '{"composite_quality_score":70,"readmission_risk_score":35,"patient_experience_score":75,"community_health_burden_score":45,"hospital_type_encoded":1,"ownership_encoded":1,"urban_rural_encoded":1,"state_avg_quality_score":65,"state_readmission_percentile":40}'
-curl -X POST http://localhost:8000/nlq/query \
-  -H 'Content-Type: application/json' \
-  -d '{"question":"What are the top 10 hospitals by quality score?"}'
+The Streamlit dashboard includes 8 analytical views:
+
+```text
+About Project
+National Overview
+Hospital Search
+Readmission Map
+Quality Scorecard
+Community Health
+Risk Explainability
+Performance Metrics
+Natural Language Query
 ```
 
-### 7. Start dashboard
+The dashboard is designed to make the analytics layer accessible through search, filters, rankings, charts, maps, and explainability views.
 
-In another terminal:
+---
 
-```bash
-streamlit run dashboard/app.py
-```
+## Tech Stack
 
-Open `http://localhost:8501`. Use the sidebar to check all 8 pages.
+### Languages and Libraries
 
-### 8. Run Airflow pipeline
+- Python
+- SQL
+- pandas
+- NumPy
+- scikit-learn
+- XGBoost
+- LightGBM
+- SHAP
 
-```bash
-docker compose up -d --build airflow-webserver airflow-scheduler
-```
+### Data Engineering
 
-Open `http://localhost:8080`, login with `admin` / `admin`, then trigger `hospital_pipeline_dag` manually. If a task fails, click the task square in the DAG graph, then choose **Logs**.
+- PostgreSQL
+- dbt
+- Docker
+- SQLAlchemy
+- Airflow
 
-## Full Docker option
+### Backend and Dashboard
 
-After your `.env` is set:
+- FastAPI
+- Streamlit
+- Plotly
 
-```bash
-docker compose up -d --build
-```
+### Deployment
 
-Services:
-
-- PostgreSQL: `localhost:5432`
-- Airflow: `http://localhost:8080`
-- FastAPI: `http://localhost:8000`
-- Streamlit: `http://localhost:8501`
-
-## SQL validation query
-
-```sql
-select schemaname, tablename
-from pg_tables
-where schemaname in ('raw','staging','intermediate','marts')
-order by schemaname, tablename;
-```
-
-## Streamlit Community Cloud deployment
-
-1. Push this repo to GitHub.
-2. In Streamlit Community Cloud, create a new app pointing to `dashboard/app.py`.
-3. Add secrets/environment variables equivalent to `.env`: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_HOST`, `POSTGRES_PORT`, `ANTHROPIC_API_KEY`, and `API_BASE_URL`.
-4. Use a hosted PostgreSQL database. Streamlit Cloud cannot run this local Docker PostgreSQL instance.
-
-Link: https://caremetrics.streamlit.app
-6. Deploy the FastAPI backend separately, then set `API_BASE_URL` to that deployed API URL.
-
-## Notes
-
-Raw data and model artifacts are intentionally ignored by git. Rebuild them with the commands above.
+- GitHub
+- Streamlit Community Cloud
+- SQLite public demo fallback
