@@ -11,7 +11,7 @@ load_dotenv()
 
 AUTHOR_NAME = os.getenv("AUTHOR_NAME", "Ribhay Singh")
 GITHUB_URL = os.getenv("GITHUB_URL", "https://github.com/Ribhay27/CareMetrics")
-LINKEDIN_URL = os.getenv("LINKEDIN_URL", "")
+LINKEDIN_URL = os.getenv("LINKEDIN_URL", "https://www.linkedin.com/in/ribhaysingh/")
 
 BASE_DIR = Path(__file__).parent
 PROJECT_ROOT = BASE_DIR.parent
