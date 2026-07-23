@@ -4,17 +4,7 @@ CareMetrics is an end-to-end healthcare analytics platform that turns public CMS
 
 The project was built to understand how a complete data product works from raw data ingestion to database modeling, analytics engineering, machine learning, API serving, and dashboard delivery.
 
----
 
-## Live Links
-
-- **Live Dashboard:** https://caremetrics.streamlit.app
-- **GitHub Repository:** https://github.com/Ribhay27/CareMetrics
-- **LinkedIn:** https://www.linkedin.com/in/ribhaysingh/
-
-> The public Streamlit dashboard uses an exported SQLite demo snapshot generated from the final dbt marts. The full local version runs with Dockerized PostgreSQL, dbt, ML pipelines, FastAPI, Airflow, and Streamlit.
-
----
 
 ## What This Project Solves
 
